@@ -7,6 +7,34 @@ view: task_runs {
     primary_key:  yes
     sql: CONCAT(${TABLE}.task_id, '-', ${TABLE}.run_id) ;;  }
 
+  # Azure physical region names from az account list-locations, 2026-09-16.
+  # Add new Azure regions when Taskcluster starts to use them.
+  dimension: cloud_provider {
+    type: string
+    label: "Cloud Provider (Worker Group)"
+    description: "Provider from the worker group. Includes runs without cost records. Unknown and unassigned groups are other."
+    sql:
+      CASE
+        WHEN ${worker_group} IN (
+          'australiacentral', 'australiacentral2', 'australiaeast', 'australiasoutheast', 'austriaeast',
+          'belgiumcentral', 'brazilsouth', 'brazilsoutheast', 'canadacentral', 'canadaeast',
+          'centralindia', 'centralus', 'centraluseuap', 'chilecentral', 'denmarkeast',
+          'eastasia', 'eastus', 'eastus2', 'eastus2euap', 'eastusstg',
+          'francecentral', 'francesouth', 'germanynorth', 'germanywestcentral', 'indiasouthcentral',
+          'indonesiacentral', 'israelcentral', 'italynorth', 'japaneast', 'japanwest',
+          'jioindiacentral', 'jioindiawest', 'koreacentral', 'koreasouth', 'malaysiawest',
+          'mexicocentral', 'newzealandnorth', 'northcentralus', 'northeurope', 'norwayeast',
+          'norwaywest', 'polandcentral', 'qatarcentral', 'southafricanorth', 'southafricawest',
+          'southcentralus', 'southcentralusstg', 'southeastasia', 'southindia', 'spaincentral',
+          'swedencentral', 'switzerlandnorth', 'switzerlandwest', 'uaecentral', 'uaenorth',
+          'uksouth', 'ukwest', 'westcentralus', 'westeurope', 'westindia',
+          'westus', 'westus2', 'westus3'
+        ) THEN 'azure'
+        WHEN REGEXP_CONTAINS(${worker_group}, r'^(africa|asia|australia|europe|me|northamerica|southamerica|us)-[a-z]+[0-9]+-[a-z]$') THEN 'gcp'
+        ELSE 'other'
+      END ;;
+  }
+
   parameter: date_bucket {
     type: string
     label: "Date Bucket"
